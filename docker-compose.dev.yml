@@ -1,0 +1,44 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: easy-moneya-postgres-dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: easy-moneya
+      POSTGRES_USER: stepan
+      POSTGRES_PASSWORD: stepan
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U stepan -d easy-moneya"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    image: node:20-alpine
+    container_name: easy-moneya-backend-dev
+    working_dir: /app
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - .env.dev
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./:/app
+      - backend_dev_node_modules:/app/node_modules
+    command: >
+      sh -c "corepack enable &&
+             pnpm install &&
+             pnpm prisma generate &&
+             pnpm prisma db push &&
+             pnpm start"
+
+volumes:
+  postgres_dev_data:
+  backend_dev_node_modules:
