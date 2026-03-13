@@ -32,7 +32,7 @@ export interface UpdateUserInput {
 
 export type UserPublic = Omit<User, 'passwordHash'>;
 
-const mapUser = (row: UserRow): User => {
+function mapUser(row: UserRow): User {
     return {
         id: row.id,
         email: row.email,
@@ -41,7 +41,7 @@ const mapUser = (row: UserRow): User => {
         createdAt: row.created_at,
         updatedAt: row.updated_at,
     };
-};
+}
 
 export const userRepository = {
     async create(data: CreateUserInput): Promise<User> {

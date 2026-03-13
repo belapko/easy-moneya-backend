@@ -1,11 +1,11 @@
 import type {Request, Response, NextFunction} from 'express';
 import {createUserService} from '#src/modules/user/user.service';
 
-export const createUserController = async (
+export async function createUserController(
     req: Request,
     res: Response,
     next: NextFunction
-) => {
+) {
     try {
         const user = await createUserService(req.body);
 
@@ -13,4 +13,4 @@ export const createUserController = async (
     } catch (error) {
         next(error);
     }
-};
+}

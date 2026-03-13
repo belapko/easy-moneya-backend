@@ -8,21 +8,33 @@ importers:
 
   .:
     dependencies:
+      '@types/express-session':
+        specifier: ^1.18.2
+        version: 1.18.2
       bcrypt:
         specifier: ^6.0.0
         version: 6.0.0
+      connect-redis:
+        specifier: ^9.0.0
+        version: 9.0.0(express-session@1.19.0)(redis@5.11.0)
       cors:
         specifier: ^2.8.6
         version: 2.8.6
       express:
         specifier: ^5.2.1
         version: 5.2.1
+      express-session:
+        specifier: ^1.19.0
+        version: 1.19.0
       jsonwebtoken:
         specifier: ^9.0.3
         version: 9.0.3
       pg:
         specifier: ^8.20.0
         version: 8.20.0
+      redis:
+        specifier: ^5.11.0
+        version: 5.11.0
     devDependencies:
       '@eslint/js':
         specifier: ^10.0.1
@@ -45,9 +57,6 @@ importers:
       dbmate:
         specifier: ^2.31.0
         version: 2.31.0
-      dotenv:
-        specifier: ^17.3.1
-        version: 17.3.1
       eslint:
         specifier: ^10.0.3
         version: 10.0.3(jiti@2.6.1)
@@ -173,6 +182,39 @@ packages:
   '@jridgewell/trace-mapping@0.3.9':
     resolution: {integrity: sha512-3Belt6tdc8bPgAtbcmdtNJlirVoTmEb5e2gC94PnkwEW9jI6CAHUeoG85tjWP5WquqfavoMtMwiG4P926ZKKuQ==}
 
+  '@redis/bloom@5.11.0':
+    resolution: {integrity: sha512-KYiVilAhAFN3057afUb/tfYJpsEyTkQB+tQcn5gVVA7DgcNOAj8lLxe4j8ov8BF6I9C1Fe/kwlbuAICcTMX8Lw==}
+    engines: {node: '>= 18'}
+    peerDependencies:
+      '@redis/client': ^5.11.0
+
+  '@redis/client@5.11.0':
+    resolution: {integrity: sha512-GHoprlNQD51Xq2Ztd94HHV94MdFZQ3CVrpA04Fz8MVoHM0B7SlbmPEVIjwTbcv58z8QyjnrOuikS0rWF03k5dQ==}
+    engines: {node: '>= 18'}
+    peerDependencies:
+      '@node-rs/xxhash': ^1.1.0
+    peerDependenciesMeta:
+      '@node-rs/xxhash':
+        optional: true
+
+  '@redis/json@5.11.0':
+    resolution: {integrity: sha512-1iAy9kAtcD0quB21RbPTbUqqy+T2Uu2JxucwE+B4A+VaDbIRvpZR6DMqV8Iqaws2YxJYB3GC5JVNzPYio2ErUg==}
+    engines: {node: '>= 18'}
+    peerDependencies:
+      '@redis/client': ^5.11.0
+
+  '@redis/search@5.11.0':
+    resolution: {integrity: sha512-g1l7f3Rnyk/xI99oGHIgWHSKFl45Re5YTIcO8j/JE8olz389yUFyz2+A6nqVy/Zi031VgPDWscbbgOk8hlhZ3g==}
+    engines: {node: '>= 18'}
+    peerDependencies:
+      '@redis/client': ^5.11.0
+
+  '@redis/time-series@5.11.0':
+    resolution: {integrity: sha512-TWFeOcU4xkj0DkndnOyhtxvX1KWD+78UHT3XX3x3XRBUGWeQrKo3jqzDsZwxbggUgf9yLJr/akFHXru66X5UQA==}
+    engines: {node: '>= 18'}
+    peerDependencies:
+      '@redis/client': ^5.11.0
+
   '@tsconfig/node10@1.0.12':
     resolution: {integrity: sha512-UCYBaeFvM11aU2y3YPZ//O5Rhj+xKyzy7mvcIoAjASbigy8mHMryP5cK7dgjlz2hWxh1g5pLw084E0a/wlUSFQ==}
 
@@ -205,6 +247,9 @@ packages:
 
   '@types/express-serve-static-core@5.1.1':
     resolution: {integrity: sha512-v4zIMr/cX7/d2BpAEX3KNKL/JrT1s43s96lLvvdTmza1oEvDudCqK9aF/djc/SWgy8Yh0h30TZx5VpzqFCxk5A==}
+
+  '@types/express-session@1.18.2':
+    resolution: {integrity: sha512-k+I0BxwVXsnEU2hV77cCobC08kIsn4y44C3gC0b46uxZVMaXA04lSPgRLR/bSL2w0t0ShJiG8o4jPzRG/nscFg==}
 
   '@types/express@5.0.6':
     resolution: {integrity: sha512-sKYVuV7Sv9fbPIt/442koC7+IIwK5olP1KWeD88e/idgoJqDm3JV/YUiPwkoKK92ylff2MGxSz1CSjsXelx0YA==}
@@ -363,6 +408,17 @@ packages:
     resolution: {integrity: sha512-7VT13fmjotKpGipCW9JEQAusEPE+Ei8nl6/g4FBAmIm0GOOLMua9NDDo/DWp0ZAxCr3cPq5ZpBqmPAQgDda2Pw==}
     engines: {node: '>= 8.10.0'}
 
+  cluster-key-slot@1.1.2:
+    resolution: {integrity: sha512-RMr0FhtfXemyinomL4hrWcYJxmX6deFdCxpJzhDttxgO1+bcCnkk+9drydLVDmAMG7NE6aN/fl4F7ucU/90gAA==}
+    engines: {node: '>=0.10.0'}
+
+  connect-redis@9.0.0:
+    resolution: {integrity: sha512-QwzyvUePTMvEzG1hy45gZYw3X3YHrjmEdSkayURlcZft7hqadQ3X39wYkmCqblK2rGlw+XItELYt6GnyG6DEIQ==}
+    engines: {node: '>=18'}
+    peerDependencies:
+      express-session: '>=1'
+      redis: '>=5'
+
   content-disposition@1.0.1:
     resolution: {integrity: sha512-oIXISMynqSqm241k6kcQ5UwttDILMK4BiurCfGEREw6+X9jkkpEe5T9FZaApyLGGOnFuyMWZpdolTXMtvEJ08Q==}
     engines: {node: '>=18'}
@@ -370,6 +426,9 @@ packages:
   content-type@1.0.5:
     resolution: {integrity: sha512-nTjqfcBFEipKdXCv4YDQWCfmcLZKm81ldF0pAopTvyrFGVbcR6P/VAAd5G7N+0tTr8QqiU0tFadD6FK4NtJwOA==}
     engines: {node: '>= 0.6'}
+
+  cookie-signature@1.0.7:
+    resolution: {integrity: sha512-NXdYc3dLr47pBkpUCHtKSwIOQXLVn8dZEuywboCOJY/osA0wFSLlSawr3KN8qXJEyX66FcONTH8EIlVuK0yyFA==}
 
   cookie-signature@1.2.2:
     resolution: {integrity: sha512-D76uU73ulSXrD1UXF4KE2TMxVVwhsnCgfAyTg9k8P6KGZjlXKrOLe4dJQKI3Bxi5wjesZoFXJWElNWBjPZMbhg==}
@@ -394,6 +453,14 @@ packages:
     resolution: {integrity: sha512-qotXrPtcq/mJUQPX3GhfFUtLsDcqU5QQ8YKg4QMYgl9/dEWEmd06YH0FaLKJZv7hMVsBbtMvHC5BdBCXhDidqA==}
     hasBin: true
 
+  debug@2.6.9:
+    resolution: {integrity: sha512-bC7ElrdJaJnPbAP+1EotYvqZsb3ecl5wi6Bfi6BJTUcNowp6cvspg0jXznRTKDjm/E7AdgFBVeAPVMNcKGsHMA==}
+    peerDependencies:
+      supports-color: '*'
+    peerDependenciesMeta:
+      supports-color:
+        optional: true
+
   debug@4.4.3:
     resolution: {integrity: sha512-RGwwWnwQvkVfavKVt22FGLw+xYSdzARwm0ru6DhTVA3umU5hZc28V3kO4stgYryrTlLpuvgI9GiijltAjNbcqA==}
     engines: {node: '>=6.0'}
@@ -413,10 +480,6 @@ packages:
   diff@4.0.4:
     resolution: {integrity: sha512-X07nttJQkwkfKfvTPG/KSnE2OMdcUCao6+eXF3wmnIQRn2aPAHH3VxDbDOdegkd6JbPsXqShpvEOHfAT+nCNwQ==}
     engines: {node: '>=0.3.1'}
-
-  dotenv@17.3.1:
-    resolution: {integrity: sha512-IO8C/dzEb6O3F9/twg6ZLXz164a2fhTnEWb95H23Dm4OuN+92NmEAlTrupP9VW6Jm3sO26tQlqyvyi4CsnY9GA==}
-    engines: {node: '>=12'}
 
   dunder-proto@1.0.1:
     resolution: {integrity: sha512-KIN/nDJBQRcXw0MLVhZE9iQHmG68qAVIBg9CqmUYjmQIhgij9U5MFvrqkUL5FbtyyzZuOeOt0zdeRe4UY7ct+A==}
@@ -496,6 +559,10 @@ packages:
   etag@1.8.1:
     resolution: {integrity: sha512-aIL5Fx7mawVa300al2BnEE4iNvo1qETxLrPI/o05L7z6go7fCw1J6EQmbK4FmJ2AS7kgVF/KEZWufBfdClMcPg==}
     engines: {node: '>= 0.6'}
+
+  express-session@1.19.0:
+    resolution: {integrity: sha512-0csaMkGq+vaiZTmSMMGkfdCOabYv192VbytFypcvI0MANrp+4i/7yEkJ0sbAEhycQjntaKGzYfjfXQyVb7BHMA==}
+    engines: {node: '>= 0.8.0'}
 
   express@5.2.1:
     resolution: {integrity: sha512-hIS4idWWai69NezIdRt2xFVofaF4j+6INOpJlVOLDO8zXGpUVEVzIYk12UUi2JzjEzWL3IOAxcTubgz9Po0yXw==}
@@ -728,6 +795,9 @@ packages:
     resolution: {integrity: sha512-oRjTw/97aTBN0RHbYCdtF1MQfvusSIBQM0IZEgzl6426+8jSC0nF1a/GmnVLpfB9yyr6g6FTqWqiZVbxrtaCIg==}
     engines: {node: 18 || 20 || >=22}
 
+  ms@2.0.0:
+    resolution: {integrity: sha512-Tpp60P6IUJDTuOq/5Z8cdskzJujfwqfOTkrwIwj7IRISpnkJnT6SyJ4PCPnGMoFjC9ddhal5KVIYtAt97ix05A==}
+
   ms@2.1.3:
     resolution: {integrity: sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==}
 
@@ -765,6 +835,10 @@ packages:
 
   on-finished@2.4.1:
     resolution: {integrity: sha512-oVlzkg3ENAhCk2zdv7IJwd/QUD4z2RxRwpkcGY8psCVcCYZNq4wYnVWALHM+brtuJjePWiYF/ClmuDr8Ch5+kg==}
+    engines: {node: '>= 0.8'}
+
+  on-headers@1.1.0:
+    resolution: {integrity: sha512-737ZY3yNnXy37FHkQxPzt4UZ2UWPWiCZWLvFZ4fu5cueciegX0zGPnrlY6bwRg4FdQOe9YU8MkmJwGhoMybl8A==}
     engines: {node: '>= 0.8'}
 
   once@1.4.0:
@@ -874,6 +948,10 @@ packages:
     resolution: {integrity: sha512-mAZTtNCeetKMH+pSjrb76NAM8V9a05I9aBZOHztWy/UqcJdQYNsf59vrRKWnojAT9Y+GbIvoTBC++CPHqpDBhQ==}
     engines: {node: '>=0.6'}
 
+  random-bytes@1.0.0:
+    resolution: {integrity: sha512-iv7LhNVO047HzYR3InF6pUcUsPQiHTM1Qal51DcGSuZFBil1aBBWG5eHPNek7bvILMaYJ/8RU1e8w1AMdHmLQQ==}
+    engines: {node: '>= 0.8'}
+
   range-parser@1.2.1:
     resolution: {integrity: sha512-Hrgsx+orqoygnmhFbKaHE6c296J+HTAQXoxEF6gNupROmmGJRoyzfG3ccAveqCBrwr/2yxQ5BVd/GTl5agOwSg==}
     engines: {node: '>= 0.6'}
@@ -885,6 +963,10 @@ packages:
   readdirp@3.6.0:
     resolution: {integrity: sha512-hOS089on8RduqdbhvQ5Z37A0ESjsqz6qnRcffsMU3495FuTdqSm+7bhJ29JvIOsBDEEnan5DPu9t3To9VRlMzA==}
     engines: {node: '>=8.10.0'}
+
+  redis@5.11.0:
+    resolution: {integrity: sha512-YwXjATVDT+AuxcyfOwZn046aml9jMlQPvU1VXIlLDVAExe0u93aTfPYSeRgG4p9Q/Jlkj+LXJ1XEoFV+j2JKcQ==}
+    engines: {node: '>= 18'}
 
   router@2.2.0:
     resolution: {integrity: sha512-nLTrUKm2UyiL7rlhapu/Zl45FwNgkZGaCpZbIHajDYgwlJCOzLSk+cIPAnsEqV955GjILJnKbdQC1nVPz+gAYQ==}
@@ -1007,6 +1089,10 @@ packages:
     resolution: {integrity: sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==}
     engines: {node: '>=14.17'}
     hasBin: true
+
+  uid-safe@2.1.5:
+    resolution: {integrity: sha512-KPHm4VL5dDXKz01UuEd88Df+KzynaohSL9fBh096KWAxSKZQDI2uBrVqtvRM4rwrIrRRKsdLNML/lnaaVSRioA==}
+    engines: {node: '>= 0.8'}
 
   undefsafe@2.0.5:
     resolution: {integrity: sha512-WxONCrssBM8TSPRqN5EmsjVrsv4A8X12J4ArBiiayv3DyyG3ZlIg6yysuuSYdZsVz3TKcTg2fd//Ujd4CHV1iA==}
@@ -1133,6 +1219,26 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.5
 
+  '@redis/bloom@5.11.0(@redis/client@5.11.0)':
+    dependencies:
+      '@redis/client': 5.11.0
+
+  '@redis/client@5.11.0':
+    dependencies:
+      cluster-key-slot: 1.1.2
+
+  '@redis/json@5.11.0(@redis/client@5.11.0)':
+    dependencies:
+      '@redis/client': 5.11.0
+
+  '@redis/search@5.11.0(@redis/client@5.11.0)':
+    dependencies:
+      '@redis/client': 5.11.0
+
+  '@redis/time-series@5.11.0(@redis/client@5.11.0)':
+    dependencies:
+      '@redis/client': 5.11.0
+
   '@tsconfig/node10@1.0.12': {}
 
   '@tsconfig/node12@1.0.11': {}
@@ -1168,6 +1274,10 @@ snapshots:
       '@types/qs': 6.15.0
       '@types/range-parser': 1.2.7
       '@types/send': 1.2.1
+
+  '@types/express-session@1.18.2':
+    dependencies:
+      '@types/express': 5.0.6
 
   '@types/express@5.0.6':
     dependencies:
@@ -1379,9 +1489,18 @@ snapshots:
     optionalDependencies:
       fsevents: 2.3.3
 
+  cluster-key-slot@1.1.2: {}
+
+  connect-redis@9.0.0(express-session@1.19.0)(redis@5.11.0):
+    dependencies:
+      express-session: 1.19.0
+      redis: 5.11.0
+
   content-disposition@1.0.1: {}
 
   content-type@1.0.5: {}
+
+  cookie-signature@1.0.7: {}
 
   cookie-signature@1.2.2: {}
 
@@ -1410,6 +1529,10 @@ snapshots:
       '@dbmate/linux-x64': 2.31.0
       '@dbmate/win32-x64': 2.31.0
 
+  debug@2.6.9:
+    dependencies:
+      ms: 2.0.0
+
   debug@4.4.3(supports-color@5.5.0):
     dependencies:
       ms: 2.1.3
@@ -1421,8 +1544,6 @@ snapshots:
   depd@2.0.0: {}
 
   diff@4.0.4: {}
-
-  dotenv@17.3.1: {}
 
   dunder-proto@1.0.1:
     dependencies:
@@ -1517,6 +1638,19 @@ snapshots:
   esutils@2.0.3: {}
 
   etag@1.8.1: {}
+
+  express-session@1.19.0:
+    dependencies:
+      cookie: 0.7.2
+      cookie-signature: 1.0.7
+      debug: 2.6.9
+      depd: 2.0.0
+      on-headers: 1.1.0
+      parseurl: 1.3.3
+      safe-buffer: 5.2.1
+      uid-safe: 2.1.5
+    transitivePeerDependencies:
+      - supports-color
 
   express@5.2.1:
     dependencies:
@@ -1757,6 +1891,8 @@ snapshots:
     dependencies:
       brace-expansion: 5.0.4
 
+  ms@2.0.0: {}
+
   ms@2.1.3: {}
 
   natural-compare@1.4.0: {}
@@ -1789,6 +1925,8 @@ snapshots:
   on-finished@2.4.1:
     dependencies:
       ee-first: 1.1.1
+
+  on-headers@1.1.0: {}
 
   once@1.4.0:
     dependencies:
@@ -1883,6 +2021,8 @@ snapshots:
     dependencies:
       side-channel: 1.1.0
 
+  random-bytes@1.0.0: {}
+
   range-parser@1.2.1: {}
 
   raw-body@3.0.2:
@@ -1895,6 +2035,16 @@ snapshots:
   readdirp@3.6.0:
     dependencies:
       picomatch: 2.3.1
+
+  redis@5.11.0:
+    dependencies:
+      '@redis/bloom': 5.11.0(@redis/client@5.11.0)
+      '@redis/client': 5.11.0
+      '@redis/json': 5.11.0(@redis/client@5.11.0)
+      '@redis/search': 5.11.0(@redis/client@5.11.0)
+      '@redis/time-series': 5.11.0(@redis/client@5.11.0)
+    transitivePeerDependencies:
+      - '@node-rs/xxhash'
 
   router@2.2.0:
     dependencies:
@@ -2042,6 +2192,10 @@ snapshots:
       - supports-color
 
   typescript@5.9.3: {}
+
+  uid-safe@2.1.5:
+    dependencies:
+      random-bytes: 1.0.0
 
   undefsafe@2.0.5: {}
 

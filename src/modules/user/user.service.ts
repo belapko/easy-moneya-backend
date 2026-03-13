@@ -1,9 +1,9 @@
 import bcrypt from 'bcrypt';
 import {userRepository, type UserPublic} from '#src/modules/user/user.repository';
 
-export const createUserService = async (
+export async function createUserService(
     data: { email: string, name?: string, password: string },
-): Promise<UserPublic> => {
+): Promise<UserPublic> {
     const existingUser = await userRepository.getByEmail(data.email);
 
     if (existingUser) {
@@ -21,4 +21,4 @@ export const createUserService = async (
     const {passwordHash: _, ...publicUser} = user;
 
     return publicUser;
-};
+}

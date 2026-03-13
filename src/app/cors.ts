@@ -1,13 +1,14 @@
 import {type CorsOptions} from 'cors';
+import {env} from '#src/config/env';
 
-const isProd = process.env.NODE_ENV === 'production';
+const isProd = env.NODE_ENV;
 
-const allowedOrigins = (process.env.CORS_ORIGINS ?? '')
+const allowedOrigins = (env.CORS_ORIGINS)
     .split(',')
     .map((value) => value.trim())
     .filter(Boolean);
 
-const corsOptions: CorsOptions = {
+export const corsOptions: CorsOptions = {
     origin(origin, callback) {
         if (!origin) {
             callback(null, true);
@@ -29,5 +30,3 @@ const corsOptions: CorsOptions = {
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
 };
-
-export default corsOptions;

@@ -1,19 +1,15 @@
-import express, {
-    type Express,
-    type Request,
-    type Response,
-} from 'express';
+import express, {type Request, type Response} from 'express';
 import cors from 'cors';
-import corsOptions from '#src/app/cors';
-import errorHandler from '#src/app/error';
+import {corsOptions} from '#src/app/cors';
+import {errorHandler} from '#src/app/error';
 import notFoundRouteHandler from '#src/routes/notFound';
 import apiRouter from '#src/routes/api';
 
-const app: Express = express();
+const app = express();
 
-app.use(cors(corsOptions));
 app.options('/{*path}', cors(corsOptions));
 
+app.use(cors(corsOptions));
 app.use(express.json({limit: '1mb'}));
 app.use(express.urlencoded({extended: false, limit: '1mb'}));
 

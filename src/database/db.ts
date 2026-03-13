@@ -1,31 +1,36 @@
 import {Pool, type QueryResult, type QueryResultRow} from 'pg';
+import {env} from '#src/config/env';
+
+const SLOW_QUERY_MS = 500;
 
 export const dbPool = new Pool({
-    connectionString: process.env.DATABASE_URL,
+    connectionString: env.POSTGRES_URL,
     max: 20,
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 2000,
 });
 
-export const checkDatabaseConnection = async (): Promise<void> => {
+dbPool.on('error', (error) => {
+    console.error('Unexpected PostgreSQL pool error', error);
+});
+
+export async function checkDatabaseConnection(): Promise<void> {
     const client = await dbPool.connect();
     try {
         await client.query('SELECT 1');
     } finally {
         client.release();
     }
-};
+}
 
-dbPool.on('error', (err) => {
-    console.error('Unexpected PostgreSQL pool error', err);
-});
+export async function closeDatabase(): Promise<void> {
+    await dbPool.end();
+}
 
-const SLOW_QUERY_MS = 500;
-
-export const dbQuery = async <T extends QueryResultRow>(
+export async function dbQuery<T extends QueryResultRow>(
     text: string,
     values?: unknown[]
-): Promise<QueryResult<T>> => {
+): Promise<QueryResult<T>> {
     const start = performance.now();
 
     try {
@@ -50,12 +55,12 @@ export const dbQuery = async <T extends QueryResultRow>(
 
         throw error;
     }
-};
+}
 
-export const dbQueryOne = async <T extends QueryResultRow>(
+export async function dbQueryOne<T extends QueryResultRow>(
     text: string,
     values?: unknown[]
-): Promise<T> => {
+): Promise<T> {
     const result = await dbQuery<T>(text, values);
     console.log(result);
 
@@ -66,12 +71,12 @@ export const dbQueryOne = async <T extends QueryResultRow>(
     }
 
     return row;
-};
+}
 
-export const dbQueryOneOrNull = async <T extends QueryResultRow>(
+export async function dbQueryOneOrNull<T extends QueryResultRow>(
     text: string,
     values?: unknown[]
-): Promise<T | null> => {
+): Promise<T | null> {
     const result = await dbQuery<T>(text, values);
 
     if (result.rows.length === 0) {
@@ -83,4 +88,4 @@ export const dbQueryOneOrNull = async <T extends QueryResultRow>(
     }
 
     return result.rows[0]!;
-};
+}

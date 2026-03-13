@@ -31,6 +31,14 @@ export default defineConfig([
                     destructuredArrayIgnorePattern: '^_',
                 },
             ],
+            'no-restricted-properties': [
+                'error',
+                {
+                    object: 'process',
+                    property: 'env',
+                    message: 'Use env variables from src/config/env.ts instead',
+                },
+            ],
         },
     },
 ]);

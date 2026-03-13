@@ -1,10 +1,9 @@
-import 'dotenv/config';
 import app from '#src/app/index';
-import {checkDatabaseConnection, dbPool} from '#src/database/db';
+import {env} from '#src/config/env';
+import {checkDatabaseConnection, closeDatabase} from '#src/database/db';
+import {closeRedis, connectRedis} from '#src/database/redis';
 
-
-const port = Number(process.env.PORT ?? 3000);
-const host = process.env.HOST ?? 'localhost';
+const {PORT, HOST} = env;
 
 let server: ReturnType<typeof app.listen>;
 let isShuttingDown = false;
@@ -14,9 +13,10 @@ async function bootstrap() {
         console.log('Starting API...');
 
         await checkDatabaseConnection();
+        await connectRedis();
 
-        server = app.listen(port, host, () => {
-            console.log(`API listening on http://${host}:${port}`);
+        server = app.listen(Number(PORT), HOST, () => {
+            console.log(`API listening on http://${HOST}:${PORT}`);
         });
 
     } catch (error) {
@@ -25,28 +25,31 @@ async function bootstrap() {
     }
 }
 
-const shutdown = async (signal: NodeJS.Signals) => {
+async function shutdown(signal: NodeJS.Signals) {
     if (isShuttingDown) return;
     isShuttingDown = true;
 
     console.log(`${signal} received, shutting down gracefully...`);
 
     try {
-        await new Promise<void>((resolve, reject) => {
-            server.close((err) => {
-                if (err) reject(err);
-                else resolve();
+        if (server) {
+            await new Promise<void>((resolve, reject) => {
+                server.close((error) => {
+                    if (error) reject(error);
+                    else resolve();
+                });
             });
-        });
+        }
 
-        await dbPool.end();
+        await closeDatabase();
+        await closeRedis();
 
         process.exit(0);
     } catch (error) {
         console.error('Shutdown error:', error);
         process.exit(1);
     }
-};
+}
 
 process.on('SIGTERM', () => void shutdown('SIGTERM'));
 process.on('SIGINT', () => void shutdown('SIGINT'));

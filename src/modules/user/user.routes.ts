@@ -1,8 +1,8 @@
 import {createUserController} from '#src/modules/user/user.controller';
 
-import {Router, type Router as RouterType} from 'express';
+import {Router} from 'express';
 
-const router: RouterType = Router();
+const router = Router();
 
 router.post('/create', createUserController);
 

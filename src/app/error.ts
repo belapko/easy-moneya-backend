@@ -1,13 +1,14 @@
 import type {NextFunction, Request, Response} from 'express';
+import {env} from '#src/config/env';
 
-const isProd = process.env.NODE_ENV === 'production';
+const isProd = env.NODE_ENV;
 
-const errorHandler = (
+export function errorHandler(
     err: unknown,
     _req: Request,
     res: Response,
     _next: NextFunction,
-) => {
+) {
     const error =
         err instanceof Error ? err : new Error('Unknown internal error');
 
@@ -26,6 +27,4 @@ const errorHandler = (
             message,
         },
     });
-};
-
-export default errorHandler;
+}

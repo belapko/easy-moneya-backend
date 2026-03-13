@@ -1,7 +1,7 @@
-import {Router, type Router as RouterType} from 'express';
+import {Router} from 'express';
 import userRouter from '#src/modules/user/user.routes';
 
-const router: RouterType = Router();
+const router = Router();
 
 router.use('/user', userRouter);
 
