@@ -20,3 +20,5 @@ export const userPublicResponseSchema = z.object({
     createdAt: z.iso.datetime(),
     updatedAt: z.iso.datetime(),
 });
+
+export type UserPublicResponse = z.infer<typeof userPublicResponseSchema>;

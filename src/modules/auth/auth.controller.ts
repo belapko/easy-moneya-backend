@@ -3,12 +3,12 @@ import {
     clearAuthenticatedSession,
     startAuthenticatedSession,
 } from '#src/lib/session';
-import {loginRequestSchema} from '#src/modules/auth/auth.schema';
 import {
     loginAuthService,
     registerAuthService,
 } from '#src/modules/auth/auth.service';
-import {createUserRequestSchema} from '#src/modules/user/user.schema';
+import type {LoginRequest} from '#src/modules/auth/auth.schema';
+import type {CreateUserRequest} from '#src/modules/user/user.schema';
 
 export async function registerController(
     req: Request,
@@ -16,8 +16,7 @@ export async function registerController(
     next: NextFunction,
 ) {
     try {
-        const registerPayload = createUserRequestSchema.parse(req.body);
-        const user = await registerAuthService(registerPayload);
+        const user = await registerAuthService(req.body as CreateUserRequest);
 
         await startAuthenticatedSession(req, user.id);
 
@@ -33,8 +32,7 @@ export async function loginController(
     next: NextFunction,
 ) {
     try {
-        const loginPayload = loginRequestSchema.parse(req.body);
-        const user = await loginAuthService(loginPayload);
+        const user = await loginAuthService(req.body as LoginRequest);
 
         await startAuthenticatedSession(req, user.id);
 

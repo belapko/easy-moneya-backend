@@ -1,10 +1,10 @@
-import {Router} from 'express';
-import authRouter from '#src/modules/auth/auth.routes';
-import userRouter from '#src/modules/user/user.routes';
+import type {RouteModuleContract} from '#src/lib/route-contract';
+import {authRouteModule} from '#src/modules/auth/auth.routes';
+import {userRouteModule} from '#src/modules/user/user.routes';
 
-const router = Router();
+export const apiBasePath = '/api';
 
-router.use('/auth', authRouter);
-router.use('/user', userRouter);
-
-export default router;
+export const apiRouteModules: RouteModuleContract[] = [
+    authRouteModule,
+    userRouteModule,
+];
