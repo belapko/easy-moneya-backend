@@ -1,6 +1,6 @@
 import type {NextFunction, Request, Response} from 'express';
-import {ZodError} from 'zod';
 import {env} from '#src/config/env';
+import {ZodError} from '#src/lib/zod';
 
 export class HttpError extends Error {
     constructor(

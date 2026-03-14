@@ -1,6 +1,7 @@
 import express, {type Request, type Response} from 'express';
 import cors from 'cors';
 import {env} from '#src/config/env';
+import docsRouter from '#src/docs/router';
 import {corsOptions} from '#src/middlewares/cors';
 import {errorHandler} from '#src/middlewares/error';
 import {sessionMiddleware} from '#src/middlewares/session';
@@ -28,6 +29,7 @@ app.get('/health', (_req: Request, res: Response) => {
     });
 });
 
+app.use('/docs', docsRouter);
 app.use('/api', apiRouter);
 app.use(notFoundRouteHandler);
 

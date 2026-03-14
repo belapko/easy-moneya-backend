@@ -1,4 +1,4 @@
-import {z} from 'zod';
+import {z} from '#src/lib/zod';
 import {
     emailSchema,
     optionalNameSchema,
@@ -12,3 +12,11 @@ export const createUserRequestSchema = z.object({
 });
 
 export type CreateUserRequest = z.infer<typeof createUserRequestSchema>;
+
+export const userPublicResponseSchema = z.object({
+    id: z.uuid(),
+    email: emailSchema,
+    name: z.string().nullable(),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+});

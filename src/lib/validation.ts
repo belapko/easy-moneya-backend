@@ -1,22 +1,22 @@
-import {z} from 'zod';
+import {z} from '#src/lib/zod';
 
 export const emailSchema = z.string()
     .trim()
-    .min(1, 'email is required')
-    .email('email must be valid')
+    .min(1, {error: 'email is required'})
+    .pipe(z.email({error: 'email must be valid'}))
     .transform((value) => value.toLowerCase());
 
 export const loginPasswordSchema = z.string()
     .refine((value) => value.trim().length > 0, {
-        message: 'password is required',
+        error: 'password is required',
     });
 
 export const registrationPasswordSchema = z.string()
     .refine((value) => value.trim().length > 0, {
-        message: 'password is required',
+        error: 'password is required',
     })
     .refine((value) => value.length >= 8, {
-        message: 'password must be at least 8 characters long',
+        error: 'password must be at least 8 characters long',
     });
 
 export const optionalNameSchema = z.preprocess((value) => {

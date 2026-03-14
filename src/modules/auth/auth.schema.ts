@@ -1,4 +1,4 @@
-import {z} from 'zod';
+import {z} from '#src/lib/zod';
 import {
     emailSchema,
     loginPasswordSchema,
