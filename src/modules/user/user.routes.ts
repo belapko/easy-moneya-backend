@@ -1,13 +1,8 @@
-import {createUserController} from '#src/modules/user/user.controller';
-
 import {Router} from 'express';
+import {meController} from '#src/modules/user/user.controller';
 
 const router = Router();
 
-router.post('/create', createUserController);
-
-router.get('/:id', (req, res) => {
-    res.json({id: req.params.id});
-});
+router.get('/me', meController);
 
 export default router;

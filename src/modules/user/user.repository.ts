@@ -43,6 +43,12 @@ function mapUser(row: UserRow): User {
     };
 }
 
+export function toPublicUser(user: User): UserPublic {
+    const {passwordHash: _passwordHash, ...publicUser} = user;
+
+    return publicUser;
+}
+
 export const userRepository = {
     async create(data: CreateUserInput): Promise<User> {
         const userRow = await dbQueryOne<UserRow>(`
@@ -60,9 +66,21 @@ export const userRepository = {
             `
                 SELECT id, email, name, password_hash, created_at, updated_at
                 FROM users
-                WHERE email = $1
+                WHERE lower(email) = lower($1)
             `,
             [email]
+        );
+
+        return result ? mapUser(result) : null;
+    },
+    async getById(id: string): Promise<User | null> {
+        const result = await dbQueryOneOrNull<UserRow>(
+            `
+                SELECT id, email, name, password_hash, created_at, updated_at
+                FROM users
+                WHERE id = $1
+            `,
+            [id]
         );
 
         return result ? mapUser(result) : null;

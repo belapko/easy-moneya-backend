@@ -15,7 +15,7 @@ async function bootstrap() {
         await checkDatabaseConnection();
         await connectRedis();
 
-        server = app.listen(Number(PORT), HOST, () => {
+        server = app.listen(PORT, HOST, () => {
             console.log(`API listening on http://${HOST}:${PORT}`);
         });
 
