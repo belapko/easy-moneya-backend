@@ -43,6 +43,7 @@ export const openApiDocument = new OpenApiGeneratorV3(
     tags: [
         {name: 'System'},
         {name: 'Auth'},
+        {name: 'Category'},
         {name: 'User'},
     ],
 });

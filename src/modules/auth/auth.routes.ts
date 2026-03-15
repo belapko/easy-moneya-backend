@@ -1,4 +1,7 @@
-import type {RouteModuleContract} from '#src/lib/route-contract';
+import {
+    defineRoute,
+    type RouteModuleContract,
+} from '#src/lib/route-contract';
 import {apiErrorResponseSchema} from '#src/docs/schemas';
 import {
     loginController,
@@ -11,7 +14,7 @@ import {
     userPublicResponseSchema,
 } from '#src/modules/user/user.schema';
 
-const registerRoute = {
+const registerRoute = defineRoute({
     method: 'post' as const,
     path: '/register',
     summary: 'Register a new user',
@@ -34,9 +37,9 @@ const registerRoute = {
         },
     },
     handler: registerController,
-};
+});
 
-const loginRoute = {
+const loginRoute = defineRoute({
     method: 'post' as const,
     path: '/login',
     summary: 'Login with email and password',
@@ -59,9 +62,9 @@ const loginRoute = {
         },
     },
     handler: loginController,
-};
+});
 
-const logoutRoute = {
+const logoutRoute = defineRoute({
     method: 'post' as const,
     path: '/logout',
     summary: 'Logout current session',
@@ -73,7 +76,7 @@ const logoutRoute = {
         },
     },
     handler: logoutController,
-};
+});
 
 export const authRouteModule: RouteModuleContract = {
     mountPath: '/auth',

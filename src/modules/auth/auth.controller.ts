@@ -1,4 +1,8 @@
 import type {NextFunction, Request, Response} from 'express';
+import type {
+    ContractRequest,
+    RouteRequest,
+} from '#src/lib/route-contract';
 import {
     clearAuthenticatedSession,
     startAuthenticatedSession,
@@ -7,16 +11,24 @@ import {
     loginAuthService,
     registerAuthService,
 } from '#src/modules/auth/auth.service';
-import type {LoginRequest} from '#src/modules/auth/auth.schema';
-import type {CreateUserRequest} from '#src/modules/user/user.schema';
+import {loginRequestSchema} from '#src/modules/auth/auth.schema';
+import {createUserRequestSchema} from '#src/modules/user/user.schema';
+
+type RegisterControllerRequest = RouteRequest<
+    ContractRequest<typeof createUserRequestSchema>
+>;
+
+type LoginControllerRequest = RouteRequest<
+    ContractRequest<typeof loginRequestSchema>
+>;
 
 export async function registerController(
-    req: Request,
+    req: RegisterControllerRequest,
     res: Response,
     next: NextFunction,
 ) {
     try {
-        const user = await registerAuthService(req.body as CreateUserRequest);
+        const user = await registerAuthService(req.body);
 
         await startAuthenticatedSession(req, user.id);
 
@@ -27,12 +39,12 @@ export async function registerController(
 }
 
 export async function loginController(
-    req: Request,
+    req: LoginControllerRequest,
     res: Response,
     next: NextFunction,
 ) {
     try {
-        const user = await loginAuthService(req.body as LoginRequest);
+        const user = await loginAuthService(req.body);
 
         await startAuthenticatedSession(req, user.id);
 

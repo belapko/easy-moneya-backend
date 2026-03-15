@@ -1,149 +1,174 @@
-import {dbQuery, type DbQueryable} from '#src/database/db';
+import {
+    dbQuery,
+    dbQueryOne,
+    dbQueryOneOrNull,
+    type DbQueryable,
+} from '#src/database/db';
 
 export type TransactionKind = 'income' | 'expense';
 
-interface DefaultCategoryTemplate {
+interface CategoryRow {
+    id: string;
+    user_id: string;
+    kind: TransactionKind;
+    code: string | null;
+    name: string;
+    icon_key: string;
+    color: string | null;
+    is_system: boolean;
+    is_archived: boolean;
+    sort_order: number;
+    created_at: Date;
+    updated_at: Date;
+}
+
+interface NextSortOrderRow {
+    next_sort_order: number;
+}
+
+export interface Category {
+    id: string;
+    userId: string;
     kind: TransactionKind;
     code: string | null;
     name: string;
     iconKey: string;
-    color: string;
+    color: string | null;
+    isSystem: boolean;
+    isArchived: boolean;
+    sortOrder: number;
+    createdAt: Date;
+    updatedAt: Date;
+}
+
+export interface ListCategoriesFilters {
+    kind?: TransactionKind;
+    includeArchived?: boolean;
+}
+
+export interface CreateCategoryInput {
+    userId: string;
+    kind: TransactionKind;
+    name: string;
+    iconKey: string;
+    color: string | null;
     sortOrder: number;
 }
 
-const defaultCategoryTemplates: DefaultCategoryTemplate[] = [
-    {
-        kind: 'expense',
-        code: 'uncategorized',
-        name: 'Uncategorized',
-        iconKey: 'tag',
-        color: '#6B7280',
-        sortOrder: 0,
-    },
-    {
-        kind: 'expense',
-        code: null,
-        name: 'Groceries',
-        iconKey: 'shopping-basket',
-        color: '#22C55E',
-        sortOrder: 1,
-    },
-    {
-        kind: 'expense',
-        code: null,
-        name: 'Transport',
-        iconKey: 'bus',
-        color: '#3B82F6',
-        sortOrder: 2,
-    },
-    {
-        kind: 'expense',
-        code: null,
-        name: 'Home',
-        iconKey: 'house',
-        color: '#F97316',
-        sortOrder: 3,
-    },
-    {
-        kind: 'expense',
-        code: null,
-        name: 'Health',
-        iconKey: 'heart-pulse',
-        color: '#EF4444',
-        sortOrder: 4,
-    },
-    {
-        kind: 'expense',
-        code: null,
-        name: 'Restaurants',
-        iconKey: 'utensils',
-        color: '#A855F7',
-        sortOrder: 5,
-    },
-    {
-        kind: 'expense',
-        code: null,
-        name: 'Entertainment',
-        iconKey: 'film',
-        color: '#EC4899',
-        sortOrder: 6,
-    },
-    {
-        kind: 'income',
-        code: 'uncategorized',
-        name: 'Uncategorized',
-        iconKey: 'tag',
-        color: '#6B7280',
-        sortOrder: 0,
-    },
-    {
-        kind: 'income',
-        code: null,
-        name: 'Salary',
-        iconKey: 'wallet',
-        color: '#10B981',
-        sortOrder: 1,
-    },
-    {
-        kind: 'income',
-        code: null,
-        name: 'Freelance',
-        iconKey: 'laptop',
-        color: '#06B6D4',
-        sortOrder: 2,
-    },
-    {
-        kind: 'income',
-        code: null,
-        name: 'Gifts',
-        iconKey: 'gift',
-        color: '#F59E0B',
-        sortOrder: 3,
-    },
-    {
-        kind: 'income',
-        code: null,
-        name: 'Cashback',
-        iconKey: 'badge-percent',
-        color: '#8B5CF6',
-        sortOrder: 4,
-    },
-];
+export interface UpdateCategoryInput {
+    name?: string;
+    iconKey?: string;
+    color?: string | null;
+    sortOrder?: number;
+    isArchived?: boolean;
+}
 
-function buildDefaultCategoriesInsert() {
-    const values: unknown[] = [];
+const categoryColumns = `
+    id,
+    user_id,
+    kind,
+    code,
+    name,
+    icon_key,
+    color,
+    is_system,
+    is_archived,
+    sort_order,
+    created_at,
+    updated_at
+`;
 
-    const placeholders = defaultCategoryTemplates.map((category, index) => {
-        const offset = index * 8;
-
-        values.push(
-            category.kind,
-            category.code,
-            category.name,
-            category.iconKey,
-            category.color,
-            true,
-            false,
-            category.sortOrder
-        );
-
-        return `($1, $${offset + 2}, $${offset + 3}, $${offset + 4}, $${offset + 5}, $${offset + 6}, $${offset + 7}, $${offset + 8}, $${offset + 9})`;
-    });
-
+function mapCategory(row: CategoryRow): Category {
     return {
-        values,
-        placeholders: placeholders.join(',\n                '),
+        id: row.id,
+        userId: row.user_id,
+        kind: row.kind,
+        code: row.code,
+        name: row.name,
+        iconKey: row.icon_key,
+        color: row.color,
+        isSystem: row.is_system,
+        isArchived: row.is_archived,
+        sortOrder: row.sort_order,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
     };
 }
 
 export const categoryRepository = {
-    async createDefaultCategoriesForUser(
+    async listByUser(
         userId: string,
+        filters: ListCategoriesFilters = {},
         executor?: DbQueryable
-    ): Promise<void> {
-        const {placeholders, values} = buildDefaultCategoriesInsert();
+    ): Promise<Category[]> {
+        const values: unknown[] = [userId];
+        const conditions = ['user_id = $1'];
 
-        await dbQuery(
+        if (filters.kind) {
+            values.push(filters.kind);
+            conditions.push(`kind = $${values.length}`);
+        }
+
+        if (!filters.includeArchived) {
+            conditions.push('is_archived = false');
+        }
+
+        const result = await dbQuery<CategoryRow>(
+            `
+                SELECT
+                    ${categoryColumns}
+                FROM categories
+                WHERE ${conditions.join(' AND ')}
+                ORDER BY kind ASC, sort_order ASC, created_at ASC
+            `,
+            values,
+            executor
+        );
+
+        return result.rows.map(mapCategory);
+    },
+    async getById(
+        userId: string,
+        categoryId: string,
+        executor?: DbQueryable
+    ): Promise<Category | null> {
+        const result = await dbQueryOneOrNull<CategoryRow>(
+            `
+                SELECT
+                    ${categoryColumns}
+                FROM categories
+                WHERE user_id = $1
+                  AND id = $2
+            `,
+            [userId, categoryId],
+            executor
+        );
+
+        return result ? mapCategory(result) : null;
+    },
+    async getNextSortOrder(
+        userId: string,
+        kind: TransactionKind,
+        executor?: DbQueryable
+    ): Promise<number> {
+        const result = await dbQueryOne<NextSortOrderRow>(
+            `
+                SELECT COALESCE(MAX(sort_order), -1) + 1 AS next_sort_order
+                FROM categories
+                WHERE user_id = $1
+                  AND kind = $2
+            `,
+            [userId, kind],
+            executor
+        );
+
+        return result.next_sort_order;
+    },
+    async create(
+        data: CreateCategoryInput,
+        executor?: DbQueryable
+    ): Promise<Category> {
+        const categoryRow = await dbQueryOne<CategoryRow>(
             `
                 INSERT INTO categories (
                     user_id,
@@ -156,11 +181,87 @@ export const categoryRepository = {
                     is_archived,
                     sort_order
                 )
-                VALUES ${placeholders}
-                ON CONFLICT (user_id, kind, code) DO NOTHING
+                VALUES ($1, $2, NULL, $3, $4, $5, false, false, $6)
+                RETURNING
+                    ${categoryColumns}
             `,
-            [userId, ...values],
+            [
+                data.userId,
+                data.kind,
+                data.name,
+                data.iconKey,
+                data.color,
+                data.sortOrder,
+            ],
             executor
         );
+
+        return mapCategory(categoryRow);
+    },
+    async update(
+        userId: string,
+        categoryId: string,
+        data: UpdateCategoryInput,
+        executor?: DbQueryable
+    ): Promise<Category | null> {
+        const values: unknown[] = [userId, categoryId];
+        const updates: string[] = [];
+
+        if (data.name !== undefined) {
+            values.push(data.name);
+            updates.push(`name = $${values.length}`);
+        }
+
+        if (data.iconKey !== undefined) {
+            values.push(data.iconKey);
+            updates.push(`icon_key = $${values.length}`);
+        }
+
+        if (data.color !== undefined) {
+            values.push(data.color);
+            updates.push(`color = $${values.length}`);
+        }
+
+        if (data.sortOrder !== undefined) {
+            values.push(data.sortOrder);
+            updates.push(`sort_order = $${values.length}`);
+        }
+
+        if (data.isArchived !== undefined) {
+            values.push(data.isArchived);
+            updates.push(`is_archived = $${values.length}`);
+        }
+
+        const result = await dbQueryOneOrNull<CategoryRow>(
+            `
+                UPDATE categories
+                SET ${updates.join(', ')}
+                WHERE user_id = $1
+                  AND id = $2
+                RETURNING
+                    ${categoryColumns}
+            `,
+            values,
+            executor
+        );
+
+        return result ? mapCategory(result) : null;
+    },
+    async deleteById(
+        userId: string,
+        categoryId: string,
+        executor?: DbQueryable
+    ): Promise<boolean> {
+        const result = await dbQuery(
+            `
+                DELETE FROM categories
+                WHERE user_id = $1
+                  AND id = $2
+            `,
+            [userId, categoryId],
+            executor
+        );
+
+        return (result.rowCount ?? 0) > 0;
     },
 };

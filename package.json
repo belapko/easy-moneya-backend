@@ -13,7 +13,8 @@
   "packageManager": "pnpm@10.30.0",
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "start": "nodemon -x ts-node src/server.ts",
+    "start": "ts-node src/server.ts",
+    "dev": "nodemon -x ts-node/register src/server.ts",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix"
   },

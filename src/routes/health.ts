@@ -1,4 +1,7 @@
-import type {RouteModuleContract} from '#src/lib/route-contract';
+import {
+    defineRoute,
+    type RouteModuleContract,
+} from '#src/lib/route-contract';
 import {z} from '#src/lib/zod';
 import type {Request, Response} from 'express';
 
@@ -16,7 +19,7 @@ function healthController(_req: Request, res: Response) {
     });
 }
 
-const healthRoute = {
+const healthRoute = defineRoute({
     method: 'get' as const,
     path: '/health',
     summary: 'Health check',
@@ -28,7 +31,7 @@ const healthRoute = {
         },
     },
     handler: healthController,
-};
+});
 
 export const healthRouteModule: RouteModuleContract = {
     mountPath: '',

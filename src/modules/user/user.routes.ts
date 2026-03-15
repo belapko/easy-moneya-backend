@@ -1,9 +1,12 @@
-import type {RouteModuleContract} from '#src/lib/route-contract';
+import {
+    defineRoute,
+    type RouteModuleContract,
+} from '#src/lib/route-contract';
 import {apiErrorResponseSchema} from '#src/docs/schemas';
 import {meController} from '#src/modules/user/user.controller';
 import {userPublicResponseSchema} from '#src/modules/user/user.schema';
 
-const meRoute = {
+const meRoute = defineRoute({
     method: 'get' as const,
     path: '/me',
     summary: 'Get current authenticated user',
@@ -20,7 +23,7 @@ const meRoute = {
         },
     },
     handler: meController,
-};
+});
 
 export const userRouteModule: RouteModuleContract = {
     mountPath: '/user',
