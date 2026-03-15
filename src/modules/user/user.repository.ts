@@ -1,4 +1,8 @@
-import {dbQueryOne, dbQueryOneOrNull} from '#src/database/db';
+import {
+    dbQueryOne,
+    dbQueryOneOrNull,
+    type DbQueryable,
+} from '#src/database/db';
 
 interface UserRow {
     id: string;
@@ -50,37 +54,40 @@ export function toPublicUser(user: User): UserPublic {
 }
 
 export const userRepository = {
-    async create(data: CreateUserInput): Promise<User> {
+    async create(data: CreateUserInput, executor?: DbQueryable): Promise<User> {
         const userRow = await dbQueryOne<UserRow>(`
                     INSERT INTO users(email, name, password_hash)
                     VALUES ($1, $2, $3)
                     RETURNING *
             `,
-            [data.email, data.name, data.passwordHash]
+            [data.email, data.name, data.passwordHash],
+            executor
         );
 
         return mapUser(userRow);
     },
-    async getByEmail(email: string): Promise<User | null> {
+    async getByEmail(email: string, executor?: DbQueryable): Promise<User | null> {
         const result = await dbQueryOneOrNull<UserRow>(
             `
                 SELECT id, email, name, password_hash, created_at, updated_at
                 FROM users
                 WHERE lower(email) = lower($1)
             `,
-            [email]
+            [email],
+            executor
         );
 
         return result ? mapUser(result) : null;
     },
-    async getById(id: string): Promise<User | null> {
+    async getById(id: string, executor?: DbQueryable): Promise<User | null> {
         const result = await dbQueryOneOrNull<UserRow>(
             `
                 SELECT id, email, name, password_hash, created_at, updated_at
                 FROM users
                 WHERE id = $1
             `,
-            [id]
+            [id],
+            executor
         );
 
         return result ? mapUser(result) : null;

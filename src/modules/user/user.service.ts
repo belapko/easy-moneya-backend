@@ -1,5 +1,7 @@
 import bcrypt from 'bcrypt';
+import {dbTransaction} from '#src/database/db';
 import {HttpError} from '#src/middlewares/error';
+import {categoryRepository} from '#src/modules/category/category.repository';
 import {
     toPublicUser,
     userRepository,
@@ -21,10 +23,16 @@ export async function registerUserService(data: CreateUserRequest): Promise<User
 
     const passwordHash = await bcrypt.hash(data.password, 12);
 
-    return userRepository.create({
-        email: data.email,
-        name: data.name,
-        passwordHash,
+    return dbTransaction(async (executor) => {
+        const user = await userRepository.create({
+            email: data.email,
+            name: data.name,
+            passwordHash,
+        }, executor);
+
+        await categoryRepository.createDefaultCategoriesForUser(user.id, executor);
+
+        return user;
     });
 }
 
