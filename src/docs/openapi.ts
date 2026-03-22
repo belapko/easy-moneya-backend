@@ -45,5 +45,6 @@ export const openApiDocument = new OpenApiGeneratorV3(
         {name: 'Auth'},
         {name: 'Category'},
         {name: 'User'},
+        {name: 'Transaction'},
     ],
 });

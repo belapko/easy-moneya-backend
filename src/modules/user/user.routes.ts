@@ -7,7 +7,7 @@ import {meController} from '#src/modules/user/user.controller';
 import {userPublicResponseSchema} from '#src/modules/user/user.schema';
 
 const meRoute = defineRoute({
-    method: 'get' as const,
+    method: 'get',
     path: '/me',
     summary: 'Get current authenticated user',
     tags: ['User'],

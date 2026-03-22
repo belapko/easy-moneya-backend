@@ -1,9 +1,27 @@
 import {z} from '#src/lib/zod';
-import {
-    emailSchema,
-    optionalNameSchema,
-    registrationPasswordSchema,
-} from '#src/lib/validation';
+import {emailSchema} from '#src/shared/schemas';
+
+const registrationPasswordSchema = z.string()
+    .refine((value) => value.trim().length > 0, {
+        error: 'password is required',
+    })
+    .refine((value) => value.length >= 8, {
+        error: 'password must be at least 8 characters long',
+    });
+
+const optionalNameSchema = z.preprocess((value) => {
+    if (value === undefined || value === null) {
+        return null;
+    }
+
+    if (typeof value === 'string') {
+        const trimmedValue = value.trim();
+
+        return trimmedValue || null;
+    }
+
+    return value;
+}, z.string().nullable());
 
 export const createUserRequestSchema = z.object({
     email: emailSchema,

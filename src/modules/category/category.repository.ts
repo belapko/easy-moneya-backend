@@ -4,8 +4,7 @@ import {
     dbQueryOneOrNull,
     type DbQueryable,
 } from '#src/database/db';
-
-export type TransactionKind = 'income' | 'expense';
+import type {TransactionKind} from '#src/shared/schemas';
 
 interface CategoryRow {
     id: string;

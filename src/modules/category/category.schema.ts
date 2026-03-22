@@ -1,6 +1,5 @@
 import {z} from '#src/lib/zod';
-
-export const transactionKindSchema = z.enum(['income', 'expense']);
+import {transactionKindSchema} from '#src/shared/schemas';
 
 const categoryNameSchema = z.string()
     .trim()

@@ -1,5 +1,5 @@
 import {dbQuery, type DbQueryable} from '#src/database/db';
-import type {TransactionKind} from '#src/modules/category/category.repository';
+import type {TransactionKind} from '#src/shared/schemas';
 
 interface DefaultCategoryTemplate {
     kind: TransactionKind;

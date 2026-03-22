@@ -20,7 +20,7 @@ import {
 } from '#src/modules/category/category.schema';
 
 const listCategoriesRoute = defineRoute({
-    method: 'get' as const,
+    method: 'get',
     path: '/',
     summary: 'List categories for current user',
     tags: ['Category'],
@@ -42,7 +42,7 @@ const listCategoriesRoute = defineRoute({
 });
 
 const getCategoryByIdRoute = defineRoute({
-    method: 'get' as const,
+    method: 'get',
     path: '/:categoryId',
     summary: 'Get category by id',
     tags: ['Category'],
@@ -68,7 +68,7 @@ const getCategoryByIdRoute = defineRoute({
 });
 
 const createCategoryRoute = defineRoute({
-    method: 'post' as const,
+    method: 'post',
     path: '/',
     summary: 'Create category',
     tags: ['Category'],
@@ -98,7 +98,7 @@ const createCategoryRoute = defineRoute({
 });
 
 const updateCategoryRoute = defineRoute({
-    method: 'patch' as const,
+    method: 'patch',
     path: '/:categoryId',
     summary: 'Update category',
     tags: ['Category'],
@@ -133,7 +133,7 @@ const updateCategoryRoute = defineRoute({
 });
 
 const deleteCategoryRoute = defineRoute({
-    method: 'delete' as const,
+    method: 'delete',
     path: '/:categoryId',
     summary: 'Delete category',
     tags: ['Category'],
