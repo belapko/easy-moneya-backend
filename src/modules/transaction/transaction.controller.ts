@@ -4,18 +4,23 @@ import type {
     RouteRequest,
 } from '#src/lib/route-contract';
 import {
+    toTransactionListResponse,
+    toTransactionResponse,
+} from '#src/modules/transaction/transaction.presenter';
+import {
     createTransactionRequestSchema,
     listTransactionsQuerySchema,
+    type TransactionResponse,
     transactionIdParamsSchema,
     updateTransactionRequestSchema,
-} from '#src/modules/transacrion/transaction.schema';
+} from '#src/modules/transaction/transaction.schema';
 import {
     createTransactionService,
     deleteTransactionService,
     getTransactionByIdService,
     listTransactionsService,
     updateTransactionService,
-} from '#src/modules/transacrion/transaction.service';
+} from '#src/modules/transaction/transaction.service';
 
 type ListTransactionsControllerRequest = RouteRequest<
     ContractRequest<undefined, undefined, typeof listTransactionsQuerySchema>
@@ -38,13 +43,13 @@ type UpdateTransactionControllerRequest = RouteRequest<
 
 export async function listTransactionsController(
     req: ListTransactionsControllerRequest,
-    res: Response,
+    res: Response<TransactionResponse[]>,
     next: NextFunction
 ) {
     try {
         const transactions = await listTransactionsService(req.session.userId, req.query);
 
-        res.status(200).json(transactions);
+        res.status(200).json(toTransactionListResponse(transactions));
     } catch (error) {
         next(error);
     }
@@ -52,7 +57,7 @@ export async function listTransactionsController(
 
 export async function getTransactionByIdController(
     req: TransactionByIdControllerRequest,
-    res: Response,
+    res: Response<TransactionResponse>,
     next: NextFunction
 ) {
     try {
@@ -61,7 +66,7 @@ export async function getTransactionByIdController(
             req.params.transactionId
         );
 
-        res.status(200).json(transaction);
+        res.status(200).json(toTransactionResponse(transaction));
     } catch (error) {
         next(error);
     }
@@ -69,13 +74,13 @@ export async function getTransactionByIdController(
 
 export async function createTransactionController(
     req: CreateTransactionControllerRequest,
-    res: Response,
+    res: Response<TransactionResponse>,
     next: NextFunction
 ) {
     try {
         const transaction = await createTransactionService(req.session.userId, req.body);
 
-        res.status(201).json(transaction);
+        res.status(201).json(toTransactionResponse(transaction));
     } catch (error) {
         next(error);
     }
@@ -83,7 +88,7 @@ export async function createTransactionController(
 
 export async function updateTransactionController(
     req: UpdateTransactionControllerRequest,
-    res: Response,
+    res: Response<TransactionResponse>,
     next: NextFunction
 ) {
     try {
@@ -93,7 +98,7 @@ export async function updateTransactionController(
             req.body
         );
 
-        res.status(200).json(transaction);
+        res.status(200).json(toTransactionResponse(transaction));
     } catch (error) {
         next(error);
     }

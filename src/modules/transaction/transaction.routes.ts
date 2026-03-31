@@ -9,7 +9,7 @@ import {
     getTransactionByIdController,
     listTransactionsController,
     updateTransactionController,
-} from '#src/modules/transacrion/transaction.controller';
+} from '#src/modules/transaction/transaction.controller';
 import {
     createTransactionRequestSchema,
     listTransactionsQuerySchema,
@@ -17,7 +17,7 @@ import {
     transactionListResponseSchema,
     transactionResponseSchema,
     updateTransactionRequestSchema,
-} from '#src/modules/transacrion/transaction.schema';
+} from '#src/modules/transaction/transaction.schema';
 
 const listTransactionsRoute = defineRoute({
     method: 'get',

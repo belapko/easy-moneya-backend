@@ -1,13 +1,14 @@
 import {HttpError} from '#src/middlewares/error';
+import {safeParseTransactionAmountToMinorUnits} from '#src/modules/transaction/transaction-amount';
 import {
     transactionRepository,
     type Transaction,
-} from '#src/modules/transacrion/transaction.repository';
+} from '#src/modules/transaction/transaction.repository';
 import type {
     CreateTransactionRequest,
     ListTransactionsQuery,
     UpdateTransactionRequest,
-} from '#src/modules/transacrion/transaction.schema';
+} from '#src/modules/transaction/transaction.schema';
 
 interface PgLikeError {
     code?: string;
@@ -32,6 +33,16 @@ function isPgLikeError(error: unknown): error is PgLikeError {
         && 'message' in error;
 }
 
+function getAmountMinorFromAmount(amount: string): string {
+    const result = safeParseTransactionAmountToMinorUnits(amount);
+
+    if (!result.success) {
+        throw new HttpError(400, 'INVALID_AMOUNT', result.message);
+    }
+
+    return result.amountMinor;
+}
+
 function mapTransactionMutationError(error: unknown): never {
     if (isPgLikeError(error)) {
         if (
@@ -51,8 +62,8 @@ function mapTransactionMutationError(error: unknown): never {
         ) {
             throw new HttpError(
                 400,
-                'INVALID_AMOUNT_MINOR',
-                'amountMinor must be greater than 0'
+                'INVALID_AMOUNT',
+                'amount must be greater than 0'
             );
         }
     }
@@ -119,7 +130,7 @@ export async function createTransactionService(
             userId: authenticatedUserId,
             kind: data.kind,
             categoryId: data.categoryId,
-            amountMinor: data.amountMinor,
+            amountMinor: getAmountMinorFromAmount(data.amount),
             description: data.description ?? '',
             occurredAt: data.occurredAt ?? new Date().toISOString(),
         });
@@ -137,7 +148,7 @@ export async function updateTransactionService(
     const updateData = {} as {
         kind?: 'income' | 'expense';
         categoryId?: string;
-        amountMinor?: number;
+        amountMinor?: string;
         description?: string;
         occurredAt?: string;
     };
@@ -150,8 +161,8 @@ export async function updateTransactionService(
         updateData.categoryId = data.categoryId;
     }
 
-    if (data.amountMinor !== undefined) {
-        updateData.amountMinor = data.amountMinor;
+    if (data.amount !== undefined) {
+        updateData.amountMinor = getAmountMinorFromAmount(data.amount);
     }
 
     if (data.description !== undefined) {

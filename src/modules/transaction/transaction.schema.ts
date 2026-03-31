@@ -1,16 +1,6 @@
 import {z} from '#src/lib/zod';
+import {safeParseTransactionAmountToMinorUnits} from '#src/modules/transaction/transaction-amount';
 import {transactionKindSchema} from '#src/shared/schemas';
-
-const transactionAmountMinorSchema = z.number()
-    .int({error: 'amountMinor must be an integer'})
-    .min(1, {error: 'amountMinor must be greater than 0'});
-
-const transactionAmountMinorResponseSchema = z.union([
-    transactionAmountMinorSchema,
-    z.string().trim().regex(/^[1-9]\d*$/, {
-        error: 'amountMinor must be a positive integer string',
-    }),
-]);
 
 const transactionDescriptionSchema = z.preprocess((value) => {
     if (value === null) {
@@ -24,7 +14,28 @@ const transactionDescriptionSchema = z.preprocess((value) => {
     return value;
 }, z.string());
 
+const transactionAmountSchema = z.string()
+    .trim()
+    .min(1, {error: 'amount is required'})
+    .superRefine((value, ctx) => {
+        if (value.length === 0) {
+            return;
+        }
+
+        const result = safeParseTransactionAmountToMinorUnits(value);
+
+        if (!result.success) {
+            ctx.addIssue({
+                code: 'custom',
+                message: result.message,
+            });
+        }
+    });
+
 const occurredAtSchema = z.iso.datetime();
+const transactionAmountResponseSchema = z.string().regex(/^(?:0|[1-9]\d*)\.\d{2}$/, {
+    error: 'amount must be a decimal string with exactly 2 fractional digits',
+});
 
 export const transactionIdParamsSchema = z.object({
     transactionId: z.uuid(),
@@ -33,7 +44,7 @@ export const transactionIdParamsSchema = z.object({
 export const createTransactionRequestSchema = z.object({
     kind: transactionKindSchema,
     categoryId: z.uuid(),
-    amountMinor: transactionAmountMinorSchema,
+    amount: transactionAmountSchema,
     description: transactionDescriptionSchema.optional(),
     occurredAt: occurredAtSchema.optional(),
 });
@@ -43,7 +54,7 @@ export type CreateTransactionRequest = z.infer<typeof createTransactionRequestSc
 export const updateTransactionRequestSchema = z.object({
     kind: transactionKindSchema.optional(),
     categoryId: z.uuid().optional(),
-    amountMinor: transactionAmountMinorSchema.optional(),
+    amount: transactionAmountSchema.optional(),
     description: transactionDescriptionSchema.optional(),
     occurredAt: occurredAtSchema.optional(),
 }).refine((value) => Object.keys(value).length > 0, {
@@ -74,11 +85,13 @@ export const transactionResponseSchema = z.object({
     id: z.uuid(),
     kind: transactionKindSchema,
     categoryId: z.uuid(),
-    amountMinor: transactionAmountMinorResponseSchema,
+    amount: transactionAmountResponseSchema,
     description: z.string(),
     occurredAt: occurredAtSchema,
     createdAt: z.iso.datetime(),
     updatedAt: z.iso.datetime(),
 });
+
+export type TransactionResponse = z.infer<typeof transactionResponseSchema>;
 
 export const transactionListResponseSchema = z.array(transactionResponseSchema);

@@ -39,7 +39,7 @@ export interface CreateTransactionInput {
     userId: string;
     kind: TransactionKind;
     categoryId: string;
-    amountMinor: number;
+    amountMinor: string;
     description: string;
     occurredAt: string;
 }
@@ -47,7 +47,7 @@ export interface CreateTransactionInput {
 export interface UpdateTransactionInput {
     kind?: TransactionKind;
     categoryId?: string;
-    amountMinor?: number;
+    amountMinor?: string;
     description?: string;
     occurredAt?: string;
 }
