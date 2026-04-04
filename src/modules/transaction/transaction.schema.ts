@@ -2,6 +2,9 @@ import {z} from '#src/lib/zod';
 import {safeParseTransactionAmountToMinorUnits} from '#src/modules/transaction/transaction-amount';
 import {transactionKindSchema} from '#src/shared/schemas';
 
+const DEFAULT_TRANSACTIONS_PAGE_SIZE = 50;
+const MAX_TRANSACTIONS_PAGE_SIZE = 100;
+
 const transactionDescriptionSchema = z.preprocess((value) => {
     if (value === null) {
         return '';
@@ -37,6 +40,30 @@ const transactionAmountResponseSchema = z.string().regex(/^(?:0|[1-9]\d*)\.\d{2}
     error: 'amount must be a decimal string with exactly 2 fractional digits',
 });
 
+const transactionPageSizeSchema = z.preprocess((value) => {
+    if (value === undefined) {
+        return DEFAULT_TRANSACTIONS_PAGE_SIZE;
+    }
+
+    if (typeof value === 'string') {
+        return Number(value.trim());
+    }
+
+    return value;
+}, z.number()
+    .int({error: 'limit must be an integer'})
+    .min(1, {error: 'limit must be greater than or equal to 1'})
+    .max(MAX_TRANSACTIONS_PAGE_SIZE, {
+        error: `limit must be less than or equal to ${MAX_TRANSACTIONS_PAGE_SIZE}`,
+    }));
+
+const transactionCategorySummarySchema = z.object({
+    id: z.uuid(),
+    name: z.string(),
+    iconKey: z.string(),
+    color: z.string().nullable(),
+});
+
 export const transactionIdParamsSchema = z.object({
     transactionId: z.uuid(),
 });
@@ -68,6 +95,8 @@ export const listTransactionsQuerySchema = z.object({
     categoryId: z.uuid().optional(),
     occurredFrom: occurredAtSchema.optional(),
     occurredTo: occurredAtSchema.optional(),
+    limit: transactionPageSizeSchema,
+    cursor: z.string().trim().min(1, {error: 'cursor must not be empty'}).optional(),
 }).refine((value) => {
     if (!value.occurredFrom || !value.occurredTo) {
         return true;
@@ -85,6 +114,7 @@ export const transactionResponseSchema = z.object({
     id: z.uuid(),
     kind: transactionKindSchema,
     categoryId: z.uuid(),
+    category: transactionCategorySummarySchema,
     amount: transactionAmountResponseSchema,
     description: z.string(),
     occurredAt: occurredAtSchema,
@@ -94,4 +124,9 @@ export const transactionResponseSchema = z.object({
 
 export type TransactionResponse = z.infer<typeof transactionResponseSchema>;
 
-export const transactionListResponseSchema = z.array(transactionResponseSchema);
+export const transactionListResponseSchema = z.object({
+    items: z.array(transactionResponseSchema),
+    nextCursor: z.string().nullable(),
+});
+
+export type TransactionListResponse = z.infer<typeof transactionListResponseSchema>;

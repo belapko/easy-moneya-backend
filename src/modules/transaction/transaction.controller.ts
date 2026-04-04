@@ -10,6 +10,7 @@ import {
 import {
     createTransactionRequestSchema,
     listTransactionsQuerySchema,
+    type TransactionListResponse,
     type TransactionResponse,
     transactionIdParamsSchema,
     updateTransactionRequestSchema,
@@ -43,13 +44,16 @@ type UpdateTransactionControllerRequest = RouteRequest<
 
 export async function listTransactionsController(
     req: ListTransactionsControllerRequest,
-    res: Response<TransactionResponse[]>,
+    res: Response<TransactionListResponse>,
     next: NextFunction
 ) {
     try {
-        const transactions = await listTransactionsService(req.session.userId, req.query);
+        const transactionsPage = await listTransactionsService(req.session.userId, req.query);
 
-        res.status(200).json(toTransactionListResponse(transactions));
+        res.status(200).json({
+            items: toTransactionListResponse(transactionsPage.items),
+            nextCursor: transactionsPage.nextCursor,
+        });
     } catch (error) {
         next(error);
     }

@@ -15,12 +15,29 @@ interface TransactionRow {
     occurred_at: Date;
     created_at: Date;
     updated_at: Date;
+    category_name: string;
+    category_icon_key: string;
+    category_color: string | null;
+}
+
+export interface TransactionCategorySummary {
+    id: string;
+    name: string;
+    iconKey: string;
+    color: string | null;
+}
+
+export interface TransactionListCursor {
+    occurredAt: string;
+    createdAt: string;
+    id: string;
 }
 
 export interface Transaction {
     id: string;
     kind: TransactionKind;
     categoryId: string;
+    category: TransactionCategorySummary;
     amountMinor: string;
     description: string;
     occurredAt: Date;
@@ -33,6 +50,13 @@ export interface ListTransactionsFilters {
     categoryId?: string;
     occurredFrom?: string;
     occurredTo?: string;
+    cursor?: TransactionListCursor;
+    limit: number;
+}
+
+export interface PaginatedTransactionsResult {
+    items: Transaction[];
+    hasMore: boolean;
 }
 
 export interface CreateTransactionInput {
@@ -53,14 +77,17 @@ export interface UpdateTransactionInput {
 }
 
 const transactionColumns = `
-    id,
-    kind,
-    category_id,
-    amount_minor,
-    description,
-    occurred_at,
-    created_at,
-    updated_at
+    t.id,
+    t.kind,
+    t.category_id,
+    t.amount_minor,
+    t.description,
+    t.occurred_at,
+    t.created_at,
+    t.updated_at,
+    c.name AS category_name,
+    c.icon_key AS category_icon_key,
+    c.color AS category_color
 `;
 
 function mapTransaction(row: TransactionRow): Transaction {
@@ -68,6 +95,12 @@ function mapTransaction(row: TransactionRow): Transaction {
         id: row.id,
         kind: row.kind,
         categoryId: row.category_id,
+        category: {
+            id: row.category_id,
+            name: row.category_name,
+            iconKey: row.category_icon_key,
+            color: row.category_color,
+        },
         amountMinor: row.amount_minor,
         description: row.description,
         occurredAt: row.occurred_at,
@@ -79,45 +112,83 @@ function mapTransaction(row: TransactionRow): Transaction {
 export const transactionRepository = {
     async listByUser(
         userId: string,
-        filters: ListTransactionsFilters = {},
+        filters: ListTransactionsFilters,
         executor?: DbQueryable
-    ): Promise<Transaction[]> {
+    ): Promise<PaginatedTransactionsResult> {
         const values: unknown[] = [userId];
-        const conditions = ['user_id = $1'];
+        const conditions = ['t.user_id = $1'];
 
         if (filters.kind) {
             values.push(filters.kind);
-            conditions.push(`kind = $${values.length}`);
+            conditions.push(`t.kind = $${values.length}`);
         }
 
         if (filters.categoryId) {
             values.push(filters.categoryId);
-            conditions.push(`category_id = $${values.length}`);
+            conditions.push(`t.category_id = $${values.length}`);
         }
 
         if (filters.occurredFrom) {
             values.push(filters.occurredFrom);
-            conditions.push(`occurred_at >= $${values.length}`);
+            conditions.push(`t.occurred_at >= $${values.length}`);
         }
 
         if (filters.occurredTo) {
             values.push(filters.occurredTo);
-            conditions.push(`occurred_at <= $${values.length}`);
+            conditions.push(`t.occurred_at <= $${values.length}`);
         }
+
+        if (filters.cursor) {
+            values.push(filters.cursor.occurredAt);
+            const occurredAtCursorPlaceholder = `$${values.length}`;
+            values.push(filters.cursor.createdAt);
+            const createdAtCursorPlaceholder = `$${values.length}`;
+            values.push(filters.cursor.id);
+            const idCursorPlaceholder = `$${values.length}`;
+
+            conditions.push(`
+                (
+                    t.occurred_at < ${occurredAtCursorPlaceholder}
+                    OR (
+                        t.occurred_at = ${occurredAtCursorPlaceholder}
+                        AND t.created_at < ${createdAtCursorPlaceholder}
+                    )
+                    OR (
+                        t.occurred_at = ${occurredAtCursorPlaceholder}
+                        AND t.created_at = ${createdAtCursorPlaceholder}
+                        AND t.id < ${idCursorPlaceholder}
+                    )
+                )
+            `);
+        }
+
+        values.push(filters.limit + 1);
+        const limitPlaceholder = `$${values.length}`;
 
         const result = await dbQuery<TransactionRow>(
             `
                 SELECT
                     ${transactionColumns}
-                FROM transactions
+                FROM transactions t
+                INNER JOIN categories c
+                    ON c.id = t.category_id
+                   AND c.user_id = t.user_id
+                   AND c.kind = t.kind
                 WHERE ${conditions.join(' AND ')}
-                ORDER BY occurred_at DESC, created_at DESC
+                ORDER BY t.occurred_at DESC, t.created_at DESC, t.id DESC
+                LIMIT ${limitPlaceholder}
             `,
             values,
             executor
         );
 
-        return result.rows.map(mapTransaction);
+        const hasMore = result.rows.length > filters.limit;
+        const items = result.rows.slice(0, filters.limit).map(mapTransaction);
+
+        return {
+            items,
+            hasMore,
+        };
     },
     async getById(
         userId: string,
@@ -128,9 +199,13 @@ export const transactionRepository = {
             `
                 SELECT
                     ${transactionColumns}
-                FROM transactions
-                WHERE user_id = $1
-                  AND id = $2
+                FROM transactions t
+                INNER JOIN categories c
+                    ON c.id = t.category_id
+                   AND c.user_id = t.user_id
+                   AND c.kind = t.kind
+                WHERE t.user_id = $1
+                  AND t.id = $2
             `,
             [userId, transactionId],
             executor
@@ -144,17 +219,44 @@ export const transactionRepository = {
     ): Promise<Transaction> {
         const transactionRow = await dbQueryOne<TransactionRow>(
             `
-                INSERT INTO transactions (
-                    user_id,
-                    kind,
-                    category_id,
-                    amount_minor,
-                    description,
-                    occurred_at
+                WITH inserted_transaction AS (
+                    INSERT INTO transactions (
+                        user_id,
+                        kind,
+                        category_id,
+                        amount_minor,
+                        description,
+                        occurred_at
+                    )
+                    VALUES ($1, $2, $3, $4, $5, $6)
+                    RETURNING
+                        id,
+                        user_id,
+                        kind,
+                        category_id,
+                        amount_minor,
+                        description,
+                        occurred_at,
+                        created_at,
+                        updated_at
                 )
-                VALUES ($1, $2, $3, $4, $5, $6)
-                RETURNING
-                    ${transactionColumns}
+                SELECT
+                    t.id,
+                    t.kind,
+                    t.category_id,
+                    t.amount_minor,
+                    t.description,
+                    t.occurred_at,
+                    t.created_at,
+                    t.updated_at,
+                    c.name AS category_name,
+                    c.icon_key AS category_icon_key,
+                    c.color AS category_color
+                FROM inserted_transaction t
+                INNER JOIN categories c
+                    ON c.id = t.category_id
+                   AND c.user_id = t.user_id
+                   AND c.kind = t.kind
             `,
             [
                 data.userId,
@@ -209,12 +311,39 @@ export const transactionRepository = {
 
         const result = await dbQueryOneOrNull<TransactionRow>(
             `
-                UPDATE transactions
-                SET ${updates.join(', ')}
-                WHERE user_id = $1
-                  AND id = $2
-                RETURNING
-                    ${transactionColumns}
+                WITH updated_transaction AS (
+                    UPDATE transactions
+                    SET ${updates.join(', ')}
+                    WHERE user_id = $1
+                      AND id = $2
+                    RETURNING
+                        id,
+                        user_id,
+                        kind,
+                        category_id,
+                        amount_minor,
+                        description,
+                        occurred_at,
+                        created_at,
+                        updated_at
+                )
+                SELECT
+                    t.id,
+                    t.kind,
+                    t.category_id,
+                    t.amount_minor,
+                    t.description,
+                    t.occurred_at,
+                    t.created_at,
+                    t.updated_at,
+                    c.name AS category_name,
+                    c.icon_key AS category_icon_key,
+                    c.color AS category_color
+                FROM updated_transaction t
+                INNER JOIN categories c
+                    ON c.id = t.category_id
+                   AND c.user_id = t.user_id
+                   AND c.kind = t.kind
             `,
             values,
             executor

@@ -11,6 +11,12 @@ export function toTransactionResponse(
         id: transaction.id,
         kind: transaction.kind,
         categoryId: transaction.categoryId,
+        category: {
+            id: transaction.category.id,
+            name: transaction.category.name,
+            iconKey: transaction.category.iconKey,
+            color: transaction.category.color,
+        },
         amount: formatTransactionAmountFromMinorUnits(transaction.amountMinor),
         description: transaction.description,
         occurredAt: transaction.occurredAt.toISOString(),

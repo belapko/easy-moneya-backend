@@ -1,7 +1,10 @@
 import {HttpError} from '#src/middlewares/error';
+import {z} from '#src/lib/zod';
 import {safeParseTransactionAmountToMinorUnits} from '#src/modules/transaction/transaction-amount';
 import {
+    type PaginatedTransactionsResult,
     transactionRepository,
+    type TransactionListCursor,
     type Transaction,
 } from '#src/modules/transaction/transaction.repository';
 import type {
@@ -18,6 +21,16 @@ interface PgLikeError {
 
 const FOREIGN_KEY_VIOLATION_CODE = '23503';
 const CHECK_VIOLATION_CODE = '23514';
+const transactionListCursorSchema = z.object({
+    occurredAt: z.iso.datetime(),
+    createdAt: z.iso.datetime(),
+    id: z.uuid(),
+});
+
+export interface TransactionListPage {
+    items: Transaction[];
+    nextCursor: string | null;
+}
 
 function getAuthenticatedUserId(userId?: string): string {
     if (!userId) {
@@ -71,6 +84,37 @@ function mapTransactionMutationError(error: unknown): never {
     throw error;
 }
 
+function decodeTransactionListCursor(cursor: string): TransactionListCursor {
+    try {
+        const parsedCursor = JSON.parse(
+            Buffer.from(cursor, 'base64url').toString('utf8')
+        ) as unknown;
+
+        return transactionListCursorSchema.parse(parsedCursor);
+    } catch {
+        throw new HttpError(400, 'INVALID_CURSOR', 'cursor is invalid');
+    }
+}
+
+function encodeTransactionListCursor(transaction: Transaction): string {
+    return Buffer.from(JSON.stringify({
+        occurredAt: transaction.occurredAt.toISOString(),
+        createdAt: transaction.createdAt.toISOString(),
+        id: transaction.id,
+    }), 'utf8').toString('base64url');
+}
+
+function toTransactionListPage(
+    page: PaginatedTransactionsResult
+): TransactionListPage {
+    return {
+        items: page.items,
+        nextCursor: page.hasMore && page.items.length > 0
+            ? encodeTransactionListCursor(page.items[page.items.length - 1]!)
+            : null,
+    };
+}
+
 async function getRequiredTransaction(
     userId: string,
     transactionId: string
@@ -87,9 +131,10 @@ async function getRequiredTransaction(
 export async function listTransactionsService(
     userId: string | undefined,
     query: ListTransactionsQuery
-): Promise<Transaction[]> {
+): Promise<TransactionListPage> {
     const authenticatedUserId = getAuthenticatedUserId(userId);
     const filters = {
+        limit: query.limit,
         occurredFrom: query.occurredFrom,
         occurredTo: query.occurredTo,
     } as {
@@ -97,6 +142,8 @@ export async function listTransactionsService(
         categoryId?: string;
         occurredFrom?: string;
         occurredTo?: string;
+        cursor?: TransactionListCursor;
+        limit: number;
     };
 
     if (query.kind !== undefined) {
@@ -107,7 +154,13 @@ export async function listTransactionsService(
         filters.categoryId = query.categoryId;
     }
 
-    return transactionRepository.listByUser(authenticatedUserId, filters);
+    if (query.cursor !== undefined) {
+        filters.cursor = decodeTransactionListCursor(query.cursor);
+    }
+
+    const page = await transactionRepository.listByUser(authenticatedUserId, filters);
+
+    return toTransactionListPage(page);
 }
 
 export async function getTransactionByIdService(
